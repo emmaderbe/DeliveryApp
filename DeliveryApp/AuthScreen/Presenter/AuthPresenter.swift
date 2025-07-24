@@ -10,6 +10,16 @@ protocol AuthPresenterProtocol: AnyObject {
 final class AuthPresenter: AuthPresenterProtocol {
     // MARK: - Private properties
     private weak var view: AuthViewProtocol?
+    private let authService: AuthServiceProtocol
+    
+    init(authService: AuthServiceProtocol = AuthService()) {
+        self.authService = authService
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - AuthPresenterProtocol functions
@@ -18,12 +28,27 @@ extension AuthPresenter {
         self.view = view
         validateForm()
     }
-
+    
     func didTapLogin() {
-        print("Логин: \(view?.getLoginText() ?? "")")
-        print("Пароль: \(view?.getPasswordText() ?? "")")
+        guard let login = view?.getLoginText(),
+              let password = view?.getPasswordText() else { return }
+        
+        authService.login(login: login, password: password) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self?.view?.showSuccess(message: "Вход выполнен успешно")
+                case .failure(let error):
+                    switch error {
+                    case .invalidCredentials:
+                        self?.view?.showError(message: "Неверный логин или пароль")
+                    }
+                }
+            }
+        }
     }
-
+    
+    
     func didUpdateLoginFields() {
         validateForm()
     }

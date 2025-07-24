@@ -5,6 +5,9 @@ protocol AuthViewProtocol: AnyObject {
     func setLoginButtonEnabled(_ isEnabled: Bool)
     func getLoginText() -> String
     func getPasswordText() -> String
+    
+    func showSuccess(message: String)
+    func showError(message: String)
 }
 
 final class AuthViewController: UIViewController {
@@ -66,24 +69,35 @@ private extension AuthViewController {
 // MARK: - AuthViewProtocol
 extension AuthViewController: AuthViewProtocol {
     func setLoginButtonEnabled(_ isEnabled: Bool) {
-        authView.setLoginButtonEnabled(isEnabled)
+        authView.setLoginButton(isEnabled)
     }
-
+    
     func getLoginText() -> String {
         authView.getLoginText()
     }
-
+    
     func getPasswordText() -> String {
         authView.getPasswordText()
     }
+    
+    func showSuccess(message: String) {
+        let snackbar = SnackbarView(text: message, style: .success)
+        snackbar.show(in: view)
+    }
+    
+    func showError(message: String) {
+        let snackbar = SnackbarView(text: message, style: .error)
+        snackbar.show(in: view)
+    }
 }
+
 
 // MARK: - AuthViewDelegate
 extension AuthViewController: AuthViewDelegate {
     func didTapLoginButton() {
         presenter.didTapLogin()
     }
-
+    
     func didChangeText() {
         presenter.didUpdateLoginFields()
     }

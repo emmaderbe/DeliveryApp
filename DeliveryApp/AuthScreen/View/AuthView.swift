@@ -175,9 +175,9 @@ private extension AuthView {
 }
 
 
-// MARK: - AuthViewProtocol functions
-extension AuthView: AuthViewProtocol {
-    func setLoginButtonEnabled(_ isEnabled: Bool) {
+// MARK: - Public functions
+extension AuthView {
+    func setLoginButton(_ isEnabled: Bool) {
         guard loginButton.isEnabled != isEnabled else { return }
         loginButton.isEnabled = isEnabled
         loginButton.updateAppearance(isEnabled: isEnabled)
