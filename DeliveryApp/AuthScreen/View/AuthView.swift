@@ -1,6 +1,15 @@
 import UIKit
 
+// MARK: - AuthViewDelegate
+protocol AuthViewDelegate: AnyObject {
+    func didTapLoginButton()
+    func didChangeText()
+}
+
 final class AuthView: UIView {
+    // MARK: - Delegate
+    weak var delegate: AuthViewDelegate?
+    
     // MARK: - Private properties
     private let titleLabel = LabelFactory.createTitleLabel(with: "Авторизация")
     private let logoImageView = ImageFactory.makeLogoImageView()
@@ -12,29 +21,21 @@ final class AuthView: UIView {
                                                   isSecure: true)
     private let backgroundView = BackgroundViewFactory.createBackground()
     private let contentWrapper = BackgroundViewFactory.createContentWrapper()
-    private let loginButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Войти", for: .normal)
-        button.backgroundColor = UIColor.systemPink.withAlphaComponent(0.4)
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        button.layer.cornerRadius = 16
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
+    private let loginButton = AuthButton(title: "Войти")
     
-    // MARK: - Constraints properties
+    // MARK: - Layout сonstraints
     private var logoTopConstraint: NSLayoutConstraint?
     private var backgroundHeightConstraint: NSLayoutConstraint?
     private var backgroundBottomConstraint: NSLayoutConstraint?
     private var contentWrapperToSafeAreaConstraint: NSLayoutConstraint?
     private var contentWrapperToBackgroundConstraint: NSLayoutConstraint?
     
-    // MARK: - Intialization
+    // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
         setupConstraints()
+        setupActions()
     }
     
     @available(*, unavailable)
@@ -61,6 +62,7 @@ private extension AuthView {
     }
     
     func setupConstraints() {
+        // Основные constraints, сохраняются в свойствах для изменения при появлении клавиатуры
         logoTopConstraint = logoImageView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 135)
         backgroundHeightConstraint = backgroundView.heightAnchor.constraint(equalToConstant: 118)
         backgroundBottomConstraint = backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor)
@@ -100,13 +102,13 @@ private extension AuthView {
             loginButton.centerYAnchor.constraint(equalTo: contentWrapper.centerYAnchor),
             loginButton.leadingAnchor.constraint(equalTo: contentWrapper.leadingAnchor, constant: 16),
             loginButton.trailingAnchor.constraint(equalTo: contentWrapper.trailingAnchor, constant: -16),
-            loginButton.heightAnchor.constraint(equalToConstant: 48),
         ])
     }
 }
 
-// MARK: - Edit UI after keyboard
+// MARK: - Edit UI after open/hide keyboard
 extension AuthView {
+    // Анимированно адаптирует layout экрана при открытии и закрытии клавиатуры
     func adjustBackgroundForKeyboard(height: CGFloat, duration: TimeInterval, curve: UIView.AnimationCurve) {
         let options = UIView.AnimationOptions(rawValue: UInt(curve.rawValue << 16))
         
@@ -116,11 +118,13 @@ extension AuthView {
         }
     }
     
+    // Активация нижнего констрейнта относительно safeArea
     func activateContentWrapperSafeArea() {
         contentWrapperToBackgroundConstraint?.isActive = false
         contentWrapperToSafeAreaConstraint?.isActive = true
     }
     
+    // Активация нижнего констрейнта относительно backgroundView (для сдвига вверх)
     func activateContentWrapperBackground() {
         contentWrapperToSafeAreaConstraint?.isActive = false
         contentWrapperToBackgroundConstraint?.isActive = true
@@ -145,11 +149,45 @@ private extension AuthView {
         case .compact:
             backgroundHeightConstraint?.constant = 88
             logoTopConstraint?.constant = 30
-            backgroundBottomConstraint?.constant = -keyboardHeight
+            backgroundBottomConstraint?.constant = -keyboardHeight + 10
             activateContentWrapperBackground()
         }
         
-        setNeedsLayout()
         layoutIfNeeded()
+    }
+}
+
+// MARK: - Actions (Button & TextFields)
+private extension AuthView {
+    func setupActions() {
+        loginButton.addTarget(self, action: #selector(loginTapped), for: .touchUpInside)
+        loginTextField.addTarget(self, action: #selector(textChanged), for: .editingChanged)
+        passwordTextField.addTarget(self, action: #selector(textChanged), for: .editingChanged)
+    }
+    
+    @objc func loginTapped() {
+        delegate?.didTapLoginButton()
+    }
+    
+    @objc func textChanged() {
+        delegate?.didChangeText()
+    }
+}
+
+
+// MARK: - AuthViewProtocol functions
+extension AuthView: AuthViewProtocol {
+    func setLoginButtonEnabled(_ isEnabled: Bool) {
+        guard loginButton.isEnabled != isEnabled else { return }
+        loginButton.isEnabled = isEnabled
+        loginButton.updateAppearance(isEnabled: isEnabled)
+    }
+    
+    func getLoginText() -> String {
+        loginTextField.text ?? ""
+    }
+    
+    func getPasswordText() -> String {
+        passwordTextField.text ?? ""
     }
 }

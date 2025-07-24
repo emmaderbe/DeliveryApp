@@ -6,10 +6,13 @@ protocol KeyboardServiceProtocol: AnyObject {
 }
 
 
-final class KeyboardService: KeyboardServiceProtocol {
+final class KeyboardService: NSObject, KeyboardServiceProtocol {
+    private var tapGesture: UITapGestureRecognizer?
+    
     var onKeyboardChange: ((_ height: CGFloat, _ duration: TimeInterval, _ curve: UIView.AnimationCurve) -> Void)?
-
-    init() {
+    
+    override init() {
+        super.init()
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleKeyboardChange),
@@ -17,7 +20,7 @@ final class KeyboardService: KeyboardServiceProtocol {
             object: nil
         )
     }
-
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -25,10 +28,13 @@ final class KeyboardService: KeyboardServiceProtocol {
 
 extension KeyboardService {
     func enableKeyboardDismiss(on view: UIView) {
-           let tapGesture = UITapGestureRecognizer(target: view, action: #selector(view.endEditing(_:)))
-           tapGesture.cancelsTouchesInView = false
-           view.addGestureRecognizer(tapGesture)
-       }
+        let gesture = UITapGestureRecognizer(target: view, action: #selector(view.endEditing(_:)))
+        gesture.cancelsTouchesInView = false
+        gesture.delegate = self
+        view.addGestureRecognizer(gesture)
+        self.tapGesture = gesture
+    }
+    
 }
 
 private extension KeyboardService {
@@ -38,10 +44,17 @@ private extension KeyboardService {
               let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
               let curveRaw = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt
         else { return }
-
+        
         let keyboardHeight = max(0, UIScreen.main.bounds.height - endFrame.origin.y)
         let curve = UIView.AnimationCurve(rawValue: Int(curveRaw)) ?? .easeInOut
-
+        
         onKeyboardChange?(keyboardHeight, duration, curve)
     }
 }
+
+extension KeyboardService: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        return !(touch.view is UIControl)
+    }
+}
+
