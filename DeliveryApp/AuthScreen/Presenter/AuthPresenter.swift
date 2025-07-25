@@ -38,6 +38,7 @@ extension AuthPresenter {
                 switch result {
                 case .success:
                     self?.view?.showSuccess(message: "Вход выполнен успешно")
+                    self?.view?.navigateToMain()
                 case .failure(let error):
                     switch error {
                     case .invalidCredentials:
