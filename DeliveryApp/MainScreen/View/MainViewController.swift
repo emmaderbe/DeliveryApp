@@ -7,13 +7,19 @@ protocol MainViewProtocol: AnyObject {
 }
 
 final class MainViewController: UIViewController {
+    // MARK: - UI
     private let mainView = MainView()
     private let bannerDataSource = BannerCellDataSource()
     private let categoryDataSource = CategoryCellDataSource()
     private let categoryDelegate = CategoryCollectionDelegate()
     private let menuDataSource = MenuCellDataSource()
+    
+    private var isProgrammaticScroll = false
+    
+    // MARK: - Dependencies
     private let presenter: MainPresenterProtocol
     
+    // MARK: - Init
     init(presenter: MainPresenterProtocol = MainPresenter()) {
         self.presenter = presenter
         super.init(nibName: nil, bundle: nil)
@@ -41,6 +47,7 @@ private extension MainViewController {
         setupDelegates()
         setupDataSource()
         setupTitle()
+        setupScroll()
     }
     
     func setupDataSource() {
@@ -65,6 +72,26 @@ private extension MainViewController {
     }
 }
 
+// MARK: - Scroll Tracking
+extension MainViewController: UIScrollViewDelegate, UICollectionViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard !isProgrammaticScroll else { return }
+        
+        let triggerOffset = mainView.bannerFrameMaxY + 24
+        let shouldPin = scrollView.contentOffset.y >= triggerOffset
+        mainView.pinCategoryToTop(shouldPin)
+    }
+    
+    func setupScroll() {
+        mainView.setMenuScrollDelegate(self)
+    }
+    
+    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        isProgrammaticScroll = false
+    }
+}
+
+// MARK: - MainViewProtocol
 extension MainViewController: MainViewProtocol {
     func updateItem(at index: Int, with image: UIImage) {
         menuDataSource.updateImage(at: index, with: image)
@@ -80,10 +107,12 @@ extension MainViewController: MainViewProtocol {
     }
     
     func scrollToMenuItem(at index: Int) {
+        isProgrammaticScroll = true
         mainView.scrollMenuToItem(at: index)
     }
 }
 
+// MARK: - Category Selection
 extension MainViewController: CategoryCollectionDelegateProtocol {
     func didSelectCategory(at index: Int) {
         presenter.didSelectCategory(at: index)
