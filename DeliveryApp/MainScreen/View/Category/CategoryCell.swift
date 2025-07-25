@@ -43,6 +43,8 @@ extension CategoryCell {
         if isSelected {
             contentView.backgroundColor = UIColor(named: "AccentPink")?.withAlphaComponent(0.2)
             titleLabel.textColor = UIColor(named: "AccentPink")
+            contentView.layer.borderWidth = 0    
+            contentView.layer.borderColor = nil
         } else {
             contentView.backgroundColor = .clear
             contentView.layer.borderColor = UIColor(named: "AccentPink")?.withAlphaComponent(0.4).cgColor

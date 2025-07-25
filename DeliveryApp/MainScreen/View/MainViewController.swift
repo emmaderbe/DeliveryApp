@@ -64,6 +64,7 @@ extension MainViewController {
     func updateContent(banners: [UIImage], categories: [String], menuItems: [MenuItemModel]) {
         bannerDataSource.updateBanners(banners)
         categoryDataSource.updateCategories(categories, selectedIndex: 0)
+        categoryDelegate.update(categoriesCount: categories.count, selectedIndex: 0)
         menuDataSource.updateMenuItems(menuItems)
         displayData()
     }
