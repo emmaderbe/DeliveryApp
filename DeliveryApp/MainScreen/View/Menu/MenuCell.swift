@@ -61,7 +61,7 @@ extension MenuCell {
     func configure(with model: MenuItemModel) {
         dishImageView.image = model.image
         nameLabel.text = model.title
-        descriptionLabel.text = model.subtitle
+        descriptionLabel.text = model.description
         priceButton.setTitle("от \(model.price) ₽", for: .normal)
     }
 }

@@ -1,7 +1,7 @@
 import UIKit
 
 protocol MainViewProtocol: AnyObject {
-    func displayData()
+    func updateContent(banners: [UIImage], categories: [String], menuItems: [MenuItemModel])
 }
 
 final class MainViewController: UIViewController {

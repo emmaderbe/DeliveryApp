@@ -4,7 +4,7 @@ struct LabelFactory {
     static func createTitleLabel() -> UILabel {
         let label = UILabel()
         label.font = .systemFont(ofSize: 17, weight: .semibold)
-        label.numberOfLines = 0
+        label.numberOfLines = 2
         label.textColor = .black
         label.textAlignment = .left
         label.lineBreakMode = .byWordWrapping

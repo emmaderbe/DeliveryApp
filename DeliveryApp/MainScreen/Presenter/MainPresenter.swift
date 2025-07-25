@@ -1,8 +1,6 @@
 import Foundation
 import UIKit
 
-import Foundation
-
 protocol MainPresenterProtocol: AnyObject {
     func viewDidLoad(view: MainViewProtocol)
 }
@@ -11,63 +9,71 @@ protocol MainPresenterProtocol: AnyObject {
 final class MainPresenter: MainPresenterProtocol  {
     weak var view: MainViewProtocol?
     
-    private var bannerImages: [UIImage] = []
     private var categories: [String] = []
     private var menuItems: [MenuItemModel] = []
+    
+    private let networkService: NetworkServiceProtocol
+    private let mapper: MenuMapperProtocol
+    
+    init(networkService: NetworkServiceProtocol = NetworkService(),
+         mapper: MenuMapperProtocol = MenuMapper()) {
+        self.networkService = networkService
+        self.mapper = mapper
+    }
 }
 
 extension MainPresenter {
     func viewDidLoad(view: MainViewProtocol) {
         self.view = view
-        fetchData()
+        loadCategories()
     }
-}
-
-private extension MainPresenter {
-    func fetchData() {
-        bannerImages = [
-            UIImage(systemName: "flame.fill")!,
-            UIImage(systemName: "leaf.fill")!,
-            UIImage(systemName: "sun.max.fill")!
-        ]
-        
-        // 2. Категории
-        categories = ["Пицца", "Бургеры", "Суши", "Десерты"]
-        
-        // 3. Меню
-        menuItems = [
-            MenuItemModel(
-                image: UIImage(systemName: "flame.fill"),
-                title: "Острая пицца",
-                subtitle: "Ветчина,шампиньоны, увеличинная порция моцареллы, томатный соус",
-                price: 450
-            ),
-            MenuItemModel(
-                image: UIImage(systemName: "leaf.fill"),
-                title: "Веган бургер",
-                subtitle: "С растительной котлетой и свежими овощами",
-                price: 390
-            ),
-            MenuItemModel(
-                image: UIImage(systemName: "sun.max.fill"),
-                title: "Филадельфия",
-                subtitle: "Классические роллы с лососем и сыром",
-                price: 520
-            ),
-            MenuItemModel(
-                image: UIImage(systemName: "moon.fill"),
-                title: "Тирамису",
-                subtitle: "Итальянский десерт с кофе и маскарпоне",
-                price: 280
-            )
-        ]
-        if let view = view as? MainViewController {
-            view.updateContent(
-                banners: bannerImages,
-                categories: categories,
-                menuItems: menuItems
-            )
+    
+    private func loadCategories() {
+        networkService.fetchCategories { [weak self] result in
+            switch result {
+            case .success(let response):
+                self?.handleCategories(response.categories)
+            case .failure(let error):
+                print("❌ Failed to fetch categories:", error)
+            }
         }
     }
     
+    private func handleCategories(_ categories: [MealCategory]) {
+        let top = Array(categories)
+        self.categories = top.map { $0.name }
+        loadMeals(for: top.map { $0.name })
+    }
+    
+    private func loadMeals(for categoryNames: [String]) {
+        let group = DispatchGroup()
+        var allMeals: [MenuItemModel] = []
+        
+        for name in categoryNames {
+            group.enter()
+            networkService.fetchMeals(for: name) { [weak self] result in
+                defer { group.leave() }
+                
+                switch result {
+                case .success(let response):
+                    let topMeals = Array(response.meals.prefix(5))
+                    let models = self?.mapper.map(topMeals) ?? []
+                    allMeals.append(contentsOf: models)
+                case .failure(let error):
+                    print("⚠️ Failed to load meals for \(name):", error)
+                }
+            }
+        }
+        
+        group.notify(queue: .main) { [weak self] in
+            self?.menuItems = allMeals
+            self?.view?.updateContent(
+                banners: [],
+                categories: self?.categories ?? [],
+                menuItems: allMeals
+            )
+        }
+    }
 }
+
+
