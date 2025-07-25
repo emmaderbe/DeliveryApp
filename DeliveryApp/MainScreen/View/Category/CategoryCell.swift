@@ -22,6 +22,7 @@ private extension CategoryCell {
         contentView.layer.cornerRadius = 15
         contentView.layer.masksToBounds = true
         contentView.addSubview(titleLabel)
+        titleLabel.numberOfLines = 1
     }
     
     func setupConstraints() {

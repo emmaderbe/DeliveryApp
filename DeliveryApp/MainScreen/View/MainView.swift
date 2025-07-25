@@ -149,3 +149,11 @@ extension MainView {
         self.menuCollectionView.reloadData()
     }
 }
+
+extension MainView {
+    func reloadMenuItem(at index: Int) {
+        let indexPath = IndexPath(item: index, section: 0)
+        self.menuCollectionView.reloadItems(at: [indexPath])
+    }
+}
+

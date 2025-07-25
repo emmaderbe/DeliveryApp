@@ -4,6 +4,7 @@ import Foundation
 protocol NetworkServiceProtocol {
     func fetchCategories(completion: @escaping (Result<MealCategoryResponse, Error>) -> Void)
     func fetchMeals(for category: String, completion: @escaping (Result<MealListResponse, Error>) -> Void)
+    func fetchRandomFoodImageURL(completion: @escaping (Result<URL, Error>) -> Void)
 }
 
 // MARK: - Errors
@@ -15,7 +16,7 @@ enum NetworkError: Error {
     case unknown
 }
 
-// MARK: - Service
+// MARK: - NetworkServiceProtocol functions
 final class NetworkService: NetworkServiceProtocol {
     private let urlSession = URLSession.shared
     
@@ -42,8 +43,41 @@ final class NetworkService: NetworkServiceProtocol {
         }
         task.resume()
     }
+    
+    func fetchRandomFoodImageURL(completion: @escaping (Result<URL, Error>) -> Void) {
+        guard let request = makeRandomFoodImageRequest() else {
+            completion(.failure(NetworkError.invalidURL))
+            return
+        }
+
+        urlSession.dataTask(with: request) { data, _, error in
+            if let error = error {
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+                return
+            }
+
+            guard
+                let data = data,
+                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let urlString = json["image"] as? String,
+                let imageURL = URL(string: urlString)
+            else {
+                DispatchQueue.main.async {
+                    completion(.failure(NetworkError.noResults))
+                }
+                return
+            }
+
+            DispatchQueue.main.async {
+                completion(.success(imageURL))
+            }
+        }.resume()
+    }
 }
 
+// MARK: - Request builder
 private extension NetworkService {
     func makeCategoriesRequest() -> URLRequest? {
         guard let url = URL(string: "https://www.themealdb.com/api/json/v1/1/categories.php") else {
@@ -60,7 +94,16 @@ private extension NetworkService {
         }
         return URLRequest(url: url)
     }
+    
+    func makeRandomFoodImageRequest() -> URLRequest? {
+        guard let url = URL(string: "https://foodish-api.com/api/") else {
+            return nil
+        }
+        return URLRequest(url: url)
+    }
+}
 
+private extension NetworkService {
     func handleResponse<T: Decodable>(data: Data?, response: URLResponse?, error: Error?, completion: @escaping (Result<T, Error>) -> Void) {
         guard let httpResponse = response as? HTTPURLResponse else {
             completion(.failure(NetworkError.unknown))

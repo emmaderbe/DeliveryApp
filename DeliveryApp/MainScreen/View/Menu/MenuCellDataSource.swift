@@ -11,6 +11,18 @@ extension MenuCellDataSource {
 }
 
 extension MenuCellDataSource {
+    func updateImage(at index: Int, with image: UIImage) {
+        guard index < menuItems.count else { return }
+        menuItems[index].image = image
+    }
+
+    func item(at index: Int) -> MenuItemModel? {
+        guard index < menuItems.count else { return nil }
+        return menuItems[index]
+    }
+}
+
+extension MenuCellDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return menuItems.count
     }

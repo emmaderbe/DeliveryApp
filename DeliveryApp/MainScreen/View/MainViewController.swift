@@ -2,6 +2,7 @@ import UIKit
 
 protocol MainViewProtocol: AnyObject {
     func updateContent(banners: [UIImage], categories: [String], menuItems: [MenuItemModel])
+    func updateItem(at index: Int, with image: UIImage)
 }
 
 final class MainViewController: UIViewController {
@@ -52,25 +53,30 @@ private extension MainViewController {
     }
 }
 
-extension MainViewController: MainViewProtocol {
+private extension MainViewController {
     func displayData() {
         mainView.reloadBannerData()
         mainView.reloadCategoryData()
         mainView.reloadMenuData()
     }
+    
+    func setupTitle(with text: String = "Москва") {
+        mainView.setupTitle(with: text)
+    }
 }
 
-extension MainViewController {
+extension MainViewController: MainViewProtocol {
+    func updateItem(at index: Int, with image: UIImage) {
+        menuDataSource.updateImage(at: index, with: image)
+        mainView.reloadMenuItem(at: index)
+    }
+    
     func updateContent(banners: [UIImage], categories: [String], menuItems: [MenuItemModel]) {
         bannerDataSource.updateBanners(banners)
         categoryDataSource.updateCategories(categories, selectedIndex: 0)
         categoryDelegate.update(categoriesCount: categories.count, selectedIndex: 0)
         menuDataSource.updateMenuItems(menuItems)
         displayData()
-    }
-    
-    func setupTitle(with text: String = "Москва") {
-        mainView.setupTitle(with: text)
     }
 }
 
