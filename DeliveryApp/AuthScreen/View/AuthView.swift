@@ -11,7 +11,7 @@ final class AuthView: UIView {
     weak var delegate: AuthViewDelegate?
     
     // MARK: - Private properties
-    private let titleLabel = LabelFactory.createTitleLabel(with: "Авторизация")
+    private let titleLabel = LabelFactory.createSubtitleLabel(with: "Авторизация")
     private let logoImageView = ImageFactory.makeLogoImageView()
     private let stackView = StackFactory.createVerticalStack(with: 8)
     private let loginTextField = AuthTextField(placeholder: "Логин",

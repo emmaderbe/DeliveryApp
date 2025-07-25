@@ -15,4 +15,13 @@ struct ImageFactory {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }
+    
+    static func createImageCell() -> UIImageView {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.cornerRadius = 10
+        imageView.layer.masksToBounds = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }
 }
