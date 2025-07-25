@@ -155,5 +155,11 @@ extension MainView {
         let indexPath = IndexPath(item: index, section: 0)
         self.menuCollectionView.reloadItems(at: [indexPath])
     }
+    
+    func scrollMenuToItem(at index: Int) {
+        menuCollectionView.scrollToItem(at: IndexPath(item: index, section: 0),
+                                        at: .top,
+                                        animated: true)
+    }
 }
 

@@ -9,11 +9,6 @@ extension CategoryCellDataSource {
     func updateCategories(_ new: [String], selectedIndex: Int) {
         self.categories = new
     }
-    
-    private func category(at index: Int) -> String? {
-        guard index < categories.count else { return nil }
-        return categories[index]
-    }
 }
 
 extension CategoryCellDataSource {

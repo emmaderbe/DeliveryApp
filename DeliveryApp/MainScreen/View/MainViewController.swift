@@ -3,6 +3,7 @@ import UIKit
 protocol MainViewProtocol: AnyObject {
     func updateContent(banners: [UIImage], categories: [String], menuItems: [MenuItemModel])
     func updateItem(at index: Int, with image: UIImage)
+    func scrollToMenuItem(at index: Int)
 }
 
 final class MainViewController: UIViewController {
@@ -49,19 +50,18 @@ private extension MainViewController {
     }
     
     func setupDelegates() {
+        categoryDelegate.delegate = self
         mainView.setupDelegate(category: categoryDelegate)
-    }
-}
-
-private extension MainViewController {
-    func displayData() {
-        mainView.reloadBannerData()
-        mainView.reloadCategoryData()
-        mainView.reloadMenuData()
     }
     
     func setupTitle(with text: String = "Москва") {
         mainView.setupTitle(with: text)
+    }
+    
+    func displayData() {
+        mainView.reloadBannerData()
+        mainView.reloadCategoryData()
+        mainView.reloadMenuData()
     }
 }
 
@@ -77,6 +77,16 @@ extension MainViewController: MainViewProtocol {
         categoryDelegate.update(categoriesCount: categories.count, selectedIndex: 0)
         menuDataSource.updateMenuItems(menuItems)
         displayData()
+    }
+    
+    func scrollToMenuItem(at index: Int) {
+        mainView.scrollMenuToItem(at: index)
+    }
+}
+
+extension MainViewController: CategoryCollectionDelegateProtocol {
+    func didSelectCategory(at index: Int) {
+        presenter.didSelectCategory(at: index)
     }
 }
 

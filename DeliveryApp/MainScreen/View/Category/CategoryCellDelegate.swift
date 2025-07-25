@@ -7,9 +7,10 @@ protocol CategoryCollectionDelegateProtocol: AnyObject {
 final class CategoryCollectionDelegate: NSObject, UICollectionViewDelegate {
     private var categoriesCount: Int = 0
     private(set) var selectedIndex: Int = 0
-    
     weak var delegate: CategoryCollectionDelegateProtocol?
+}
 
+extension CategoryCollectionDelegate {
     func update(categoriesCount: Int, selectedIndex: Int) {
         self.categoriesCount = categoriesCount
         self.selectedIndex = selectedIndex

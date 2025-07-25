@@ -2,12 +2,14 @@ import UIKit
 
 protocol MainPresenterProtocol: AnyObject {
     func viewDidLoad(view: MainViewProtocol)
+    func didSelectCategory(at index: Int)
 }
 
 final class MainPresenter: MainPresenterProtocol  {
     // MARK: - Private properties
     private weak var view: MainViewProtocol?
     private var categories: [String] = []
+    private var categoryIndexMap: [String: Int] = [:]
     private var menuItems: [MenuItemModel] = []
     private var banners: [UIImage] = []
     
@@ -34,6 +36,15 @@ extension MainPresenter {
     func viewDidLoad(view: MainViewProtocol) {
         self.view = view
         fetchAllData()
+    }
+    
+    func didSelectCategory(at index: Int) {
+        guard index < categories.count else { return }
+        let category = categories[index]
+        guard let scrollIndex = categoryIndexMap[category] else {
+            return
+        }
+        view?.scrollToMenuItem(at: scrollIndex)
     }
 }
 
@@ -93,7 +104,7 @@ private extension MainPresenter {
                 case .success(let response):
                     // оставляем только 5 первых блюд
                     let meals = Array(response.meals.prefix(5))
-                    let models = self?.mapper.map(meals) ?? []
+                    let models = self?.mapper.map(meals, category: name) ?? []
                     loadedMeals.append(contentsOf: models)
                     
                     // сохраняем URL изображений вместе с индексом модели
@@ -114,13 +125,29 @@ private extension MainPresenter {
             self?.handleMealsReady(loadedMeals, imageURL)
         }
     }
+    
     func handleMealsReady(_ meals: [MenuItemModel], _ url: [(index: Int, url: URL)]) {
         self.menuItems = meals
+        self.categoryIndexMap = generateCategoryIndexMap(from: meals)
         updateContent()
         
         for (index, url) in url {
             loadImage(at: index, from: url)
         }
+    }
+    
+    func generateCategoryIndexMap(from meals: [MenuItemModel]) -> [String: Int] {
+        var map: [String: Int] = [:]
+        var seen: Set<String> = []
+        
+        for (index, meal) in meals.enumerated() {
+            let category = meal.category
+            if !seen.contains(category) {
+                map[category] = index
+                seen.insert(category)
+            }
+        }
+        return map
     }
     
     // Загружает изображение по URL, вызывая потом обновление конкретной ячейки на экране
@@ -143,7 +170,7 @@ private extension MainPresenter {
     func loadBanners(count: Int = 5) {
         let group = DispatchGroup()
         var images: [UIImage] = []
-
+        
         for _ in 0..<count {
             group.enter()
             networkService.fetchRandomFoodImageURL { [weak self] result in
@@ -155,7 +182,7 @@ private extension MainPresenter {
                         }
                         group.leave()
                     }
-
+                    
                 case .failure(let error):
                     print("Failed to fetch banner url:", error)
                     group.leave()
