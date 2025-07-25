@@ -8,6 +8,8 @@ protocol AuthViewProtocol: AnyObject {
     
     func showSuccess(message: String)
     func showError(message: String)
+    
+    func navigateToMain()
 }
 
 final class AuthViewController: UIViewController {
@@ -89,7 +91,13 @@ extension AuthViewController: AuthViewProtocol {
         let snackbar = SnackbarView(text: message, style: .error)
         snackbar.show(in: view)
     }
-}
+    
+    func navigateToMain() {
+        let tabBar = MainTabBarController()
+        tabBar.modalPresentationStyle = .fullScreen
+        present(tabBar, animated: true)
+        }
+    }
 
 
 // MARK: - AuthViewDelegate

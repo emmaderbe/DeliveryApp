@@ -26,8 +26,6 @@ private extension PriceButton {
     
     func setupConstraints() {
         self.translatesAutoresizingMaskIntoConstraints = false
-        self.heightAnchor.constraint(equalToConstant: 32).isActive = true
-        self.widthAnchor.constraint(equalToConstant: 87).isActive = true
     }
 }
 

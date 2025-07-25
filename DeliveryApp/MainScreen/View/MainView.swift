@@ -78,7 +78,7 @@ private extension MainView {
             backgroundView.topAnchor.constraint(equalTo: categoryCollectionView.bottomAnchor, constant: 24),
             backgroundView.leadingAnchor.constraint(equalTo: leadingAnchor),
             backgroundView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            backgroundView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor),
             
             menuCollectionView.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: 24),
             menuCollectionView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
